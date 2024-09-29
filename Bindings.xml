@@ -1,0 +1,8 @@
+<Bindings>
+	<Binding name="RAIDLEADTINYPAD_TOGGLE" header="RAIDLEADTINYPAD" category="ADDONS">
+		RaidLeadTinyPad:Toggle()
+	</Binding>
+	<Binding name="RAIDLEADTINYPAD_SEARCH" category="ADDONS">
+		RaidLeadTinyPad:TogglePanel()
+	</Binding>
+</Bindings>

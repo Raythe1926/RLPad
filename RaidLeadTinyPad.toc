@@ -1,0 +1,9 @@
+## Interface: 110000
+## Title: RaidLeadTinyPad
+## Notes: A notepad mod for raid leaders.
+## Author: Raythe
+## Copied and modified from TinyPad, a notepad mod written by Gello.
+## Version: 1.1.2
+## SavedVariables: RaidLeadTinyPadPages, RaidLeadTinyPadSettings, RaidLeadTinyPadPageLevels, RaidLeadTinyPadPageMobs
+RaidLeadTinyPad.xml
+RaidLeadTinyPad.lua

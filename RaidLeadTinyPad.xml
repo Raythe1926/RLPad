@@ -1,0 +1,706 @@
+<Ui>
+	<!-- template for titlebar buttons -->
+	<Button name="RaidLeadTinyPadButtonTemplate" virtual="true">
+		<Size x="20" y="20"/>
+		<HighlightTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons" alphaMode="ADD">
+			<TexCoords left=".125" right=".25" top=".25" bottom=".375"/>
+		</HighlightTexture>
+		<Scripts>
+			<OnEnter>
+				RaidLeadTinyPad.ShowTooltip(self)
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide()
+			</OnLeave>
+		</Scripts>
+	</Button>
+
+	<!-- template for bookmark buttons -->
+
+	<Frame name="RaidLeadTinyPad" parent="UIParent" inherits="BackdropTemplate" clampedToScreen="true" enableMouse="true" movable="true" resizable="true" toplevel="true" hidden="true">
+		<Size x="300" y="200"/>
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+		</KeyValues>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+			</Layer>
+		</Layers>
+		<Frames>
+			<!-- this frame-within-a-frame is the primary area that contains the scrollframe/editbox -->
+			<Frame>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="6" y="-24"/>
+					</Anchor>
+					<Anchor point="BOTTOMRIGHT">
+						<Offset x="-6" y="6"/>
+					</Anchor>
+				</Anchors>
+				<!--
+				<Backdrop bgFile="Interface\ChatFrame\ChatFrameBackground" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4" />
+					</BackgroundInsets>
+					<TileSize val="16"/>
+					<EdgeSize val="16"/>
+					<Color r=".1" g=".1" b=".1"/>
+					<BorderColor r=".5" g=".5" b=".5"/>
+				</Backdrop>
+				-->
+				<Frames>
+					<ScrollFrame name="RaidLeadTinyPadScrollFrame" inherits="UIPanelScrollFrameTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset x="6" y="-6"/>
+							</Anchor>
+							<Anchor point="BOTTOMRIGHT">
+								<Offset x="-28" y="6"/>
+							</Anchor>
+						</Anchors>
+						<Layers>
+							<Layer level="BORDER">
+								<!-- gradient for scrollbar track -->
+								<Texture file="Interface\ChatFrame\ChatFrameBackground">
+									<Anchors>
+										<Anchor point="TOPLEFT" relativePoint="TOPRIGHT">
+											<Offset x="0" y="0"/>
+										</Anchor>
+										<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT">
+											<Offset x="23" y="0"/>
+										</Anchor>
+									</Anchors>
+									<Gradient>
+										<MinColor r="0.1" g="0.1" b="0.1"/>
+										<MaxColor r="0" g="0" b="0"/>
+									</Gradient>
+								</Texture>
+							</Layer>
+						</Layers>
+						<ScrollChild>
+							<!-- the main editbox where the magic happens -->
+							<EditBox parentKey="editBox" name="RaidLeadTinyPadEditBox" multiLine="true" letters="8192" nonspacewrap="true" spacing="1" autoFocus="false">
+								<Size x="100" y="100"/>
+								<Anchors>
+									<Anchor point="TOPLEFT"/>
+									<Anchor point="BOTTOMRIGHT"/>
+								</Anchors>
+								<Scripts>
+									<OnTextChanged>
+										RaidLeadTinyPad.OnTextChanged(self)
+									</OnTextChanged>
+									<OnEscapePressed>
+										self:ClearFocus()
+									</OnEscapePressed>
+									<OnHyperlinkClick>
+										RaidLeadTinyPad.OnHyperlinkClick(self,link,text,button)
+									</OnHyperlinkClick>
+									<OnCursorChanged>
+										RaidLeadTinyPad.OnCursorChanged(self,x,y,w,h)
+									</OnCursorChanged>
+								</Scripts>
+								<FontString inherits="GameFontHighlight"/>
+							</EditBox>
+						</ScrollChild>
+					</ScrollFrame>
+				</Frames>
+			</Frame>
+
+			<!-- this button covers the scrollframe to intercept clicks to grab focus -->
+			<Button>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="RaidLeadTinyPadScrollFrame"/>
+					<Anchor point="BOTTOMRIGHT" relativeTo="RaidLeadTinyPadScrollFrame"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						RaidLeadTinyPadEditBox:SetCursorPosition(RaidLeadTinyPadEditBox:GetText():len())
+						RaidLeadTinyPadEditBox:SetFocus()
+					</OnClick>
+				</Scripts>
+			</Button>
+
+			<!-- grip in lower-right corner to resize window -->
+			<Button parentKey="resize">
+				<Size x="16" y="16"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT">
+						<Offset x="0" y="-1"/>
+					</Anchor>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left="0" right=".125" top=".25" bottom=".375"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons" alphaMode="ADD">
+					<TexCoords left="0" right=".125" top=".25" bottom=".375"/>
+				</PushedTexture>
+				<HighlightTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons" alphaMode="ADD">
+					<TexCoords left="0" right=".125" top=".25" bottom=".375"/>
+				</HighlightTexture>
+				<Scripts>
+					<OnMouseDown>
+						RaidLeadTinyPad:StartSizing()
+					</OnMouseDown>
+					<OnMouseUp>
+						RaidLeadTinyPad:StopMovingOrSizing()
+					</OnMouseUp>
+				</Scripts>
+			</Button>
+
+			<!-- close -->
+			<Button parentKey="close" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-8" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".25" right=".375" top=".125" bottom=".25"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".375" right=".5" top=".125" bottom=".25"/>
+				</PushedTexture>
+			</Button>
+			<!-- snooze -->
+			<Button parentKey="snooze" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-28" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".75" right=".875" top=".75" bottom=".875"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".875" right="1" top=".75" bottom=".875"/>
+				</PushedTexture>
+			</Button>
+			<!-- show the bookmarks panel -->
+			<Button parentKey="showbookmarks" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-68" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left="0" right=".125" top=".5" bottom=".625"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".125" right=".25" top=".5" bottom=".625"/>
+				</PushedTexture>
+			</Button>
+			<!-- search -->
+			<Button parentKey="config" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-48" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".75" right=".875" top=".0" bottom=".125"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".875" right="1" top=".0" bottom=".125"/>
+				</PushedTexture>
+			</Button>
+			
+			<!-- new -->
+			<Button parentKey="new" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="8" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left="0" right=".125" top="0" bottom=".125"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".125" right=".25" top="0" bottom=".125"/>
+				</PushedTexture>
+			</Button>
+			<!-- new subpage -->
+			<Button parentKey="newsub" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="28" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".25" right=".375" top=".75" bottom=".875"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".375" right=".5" top=".75" bottom=".875"/>
+				</PushedTexture>
+			</Button>
+			<!-- toggle indent -->
+			<Button parentKey="indenttoggle" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="48" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".25" right=".375" top=".25" bottom=".375"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".375" right=".5" top=".25" bottom=".375"/>
+				</PushedTexture>
+			</Button>
+			<!-- Link boss -->
+			<Button parentKey="linkmob" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="68" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".625" right=".75" top=".625" bottom=".75"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".75" right=".875" top=".625" bottom=".75"/>
+				</PushedTexture>
+			</Button>
+			<!-- delete -->
+			<Button parentKey="delete" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="88" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".25" right=".375" top="0" bottom=".125"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".375" right=".5" top="0" bottom=".125"/>
+				</PushedTexture>
+			</Button>
+			<!-- undo -->
+			<Button parentKey="undo" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="108" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".5" right=".625" top=".375" bottom=".5"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".625" right=".75" top=".375" bottom=".5"/>
+				</PushedTexture>
+				<DisabledTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".75" right=".875" top=".375" bottom=".5"/>
+				</DisabledTexture>
+			</Button>
+			<!-- broadcast -->
+			<Button parentKey="broadcast" inherits="RaidLeadTinyPadButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="128" y="-5"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".5" right=".625" top=".75" bottom=".875"/>
+				</NormalTexture>
+				<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<TexCoords left=".625" right=".75" top=".75" bottom=".875"/>
+				</PushedTexture>
+			</Button>
+
+			<!-- Title panel -->
+			<Frame parentKey="PageTitlepanel" name="RaidLeadTinyPadPageTitle" inherits="BackdropTemplate" hidden="false">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="RaidLeadTinyPad" relativePoint="TOPLEFT" x="0" y="36"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="0" y="-3"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="result" inherits="GameFontHighlightSmall" justifyH="CENTER" justifyV="CENTER" text="Page Title:">
+							<Size x="64" y="30"/>
+							<Anchors>
+								<Anchor point="LEFT" x="6" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Frames>
+					<!-- search editBox mimic main area -->
+					<EditBox parentKey="editBox" name="RaidLeadTinyPadPageTitleEditBox" multiLine="false" autoFocus="false">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeTo="RaidLeadTinyPadPageTitle" relativePoint="BOTTOMLEFT" x="80" y="38"/>
+							<Anchor point="BOTTOMRIGHT" x="-26" y="1"/> <!-- x was -92 -->
+						</Anchors>
+						<FontString inherits="GameFontHighlight"/>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="12" y="29"/>
+									<Anchors>
+										<Anchor point="RIGHT" relativePoint="LEFT" x="2" y="-3"/>
+									</Anchors>
+									<TexCoords left="0" right="0.09375" top="0" bottom="1.0"/>
+								</Texture>
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="12" y="29"/>
+									<Anchors>
+										<Anchor point="LEFT" relativePoint="RIGHT" x="8" y="-3"/>
+									</Anchors>
+									<TexCoords left="0.90625" right="1.0" top="0" bottom="1.0"/>
+								</Texture>
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="0" y="29"/>
+									<Anchors>
+										<Anchor point="LEFT" x="2" y="-3"/>
+										<Anchor point="RIGHT" x="8" y="-3"/>
+									</Anchors>
+									<TexCoords left="0.09375" right="0.90625" top="0" bottom="1.0"/>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Frames>
+						</Frames>
+						<Scripts>
+              <OnTextChanged>
+                RaidLeadTinyPad.OnPageTitleTextChanged(self)
+              </OnTextChanged>
+							<OnEnterPressed>
+								RaidLeadTinyPad.PageTitleOnEnter(self)
+							</OnEnterPressed>
+							<OnEscapePressed>
+								self:ClearFocus()
+							</OnEscapePressed>
+						</Scripts>
+					</EditBox>
+				</Frames>
+				<Scripts>
+					<OnMouseDown>
+						RaidLeadTinyPad:OnMouseDown()
+					</OnMouseDown>
+					<OnMouseUp>
+						RaidLeadTinyPad:OnMouseUp()
+					</OnMouseUp>
+				</Scripts>
+			</Frame>
+
+				<!-- panel is attached to the top of the RaidLeadTinyPad frame, contains searchbox and a couple options -->
+			<Frame parentKey="settingspanel" name="RaidLeadTinyPadPanel" inherits="BackdropTemplate" hidden="true">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="RaidLeadTinyPadPageTitle" relativePoint="TOPLEFT" x="0" y="36"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="0" y="33"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="result" inherits="GameFontHighlightSmall" justifyH="CENTER" justifyV="CENTER" text="Search:">
+							<Size x="48" y="30"/>
+							<Anchors>
+								<Anchor point="LEFT" x="6" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Frames>
+
+					<!-- search editBox mimic main area -->
+					<EditBox parentKey="searchBox" autoFocus="true">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="64" y="29"/>
+							<Anchor point="BOTTOMRIGHT" x="-113" y="9"/> <!-- x was -92 -->
+						</Anchors>
+						<FontString inherits="GameFontHighlight"/>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="12" y="29"/>
+									<Anchors>
+										<Anchor point="RIGHT" relativePoint="LEFT" x="2" y="-3"/>
+									</Anchors>
+									<TexCoords left="0" right="0.09375" top="0" bottom="1.0"/>
+								</Texture>
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="12" y="29"/>
+									<Anchors>
+										<Anchor point="LEFT" relativePoint="RIGHT" x="8" y="-3"/>
+									</Anchors>
+									<TexCoords left="0.90625" right="1.0" top="0" bottom="1.0"/>
+								</Texture>
+								<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+									<Size x="0" y="29"/>
+									<Anchors>
+										<Anchor point="LEFT" x="2" y="-3"/>
+										<Anchor point="RIGHT" x="8" y="-3"/>
+									</Anchors>
+									<TexCoords left="0.09375" right="0.90625" top="0" bottom="1.0"/>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Frames>
+							<!-- little clear button at right -->
+							<Button parentKey="clear">
+								<Size x="17" y="17"/>
+								<Anchors>
+									<Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+								</Anchors>
+								<Layers>
+									<Layer level="ARTWORK">
+										<Texture file="Interface\FriendsFrame\ClearBroadcastIcon" alpha="0.5" parentKey="texture">
+											<Size>
+												<AbsDimension x="17" y="17"/>
+											</Size>
+											<Anchors>
+												<Anchor point="TOPLEFT" x="0" y="0"/>
+											</Anchors>
+										</Texture>
+									</Layer>
+								</Layers>
+								<Scripts>
+									<OnEnter>
+										self.texture:SetAlpha(1.0)
+									</OnEnter>
+									<OnLeave>
+										self.texture:SetAlpha(0.5)
+									</OnLeave>
+									<OnMouseDown>
+										if self:IsEnabled() then
+											self.texture:SetPoint("TOPLEFT", 1, -1)
+										end
+									</OnMouseDown>
+									<OnMouseUp>
+										self.texture:SetPoint("TOPLEFT", 0, 0)
+									</OnMouseUp>
+									<OnClick>
+										PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+										self:GetParent():SetText("")
+									</OnClick>
+								</Scripts>
+							</Button>
+						</Frames>
+						<Scripts>
+							<OnEscapePressed>
+								self:GetParent():Hide()
+							</OnEscapePressed>
+							<OnTextChanged>
+								RaidLeadTinyPad.SearchOnTextChanged(self)
+							</OnTextChanged>
+							<OnEnterPressed>
+								RaidLeadTinyPad.SearchOnEnter(self)
+							</OnEnterPressed>
+							<OnEditFocusLost>
+								self:GetParent():Hide()
+							</OnEditFocusLost>
+						</Scripts>
+					</EditBox>
+
+					<Button parentKey="lock" inherits="RaidLeadTinyPadButtonTemplate">
+						<Anchors>
+							<Anchor point="RIGHT" x="-8" y="0"/>
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".5" right=".625" top=".125" bottom=".25"/>
+						</NormalTexture>
+						<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".625" right=".75" top=".125" bottom=".25"/>
+						</PushedTexture>
+					</Button>
+					<Button parentKey="font" inherits="RaidLeadTinyPadButtonTemplate">
+						<Anchors>
+							<Anchor point="RIGHT" x="-29" y="0"/>
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".5" right=".625" top=".25" bottom=".375"/>
+						</NormalTexture>
+						<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".625" right=".75" top=".25" bottom=".375"/>
+						</PushedTexture>
+					</Button>
+				   <Button parentKey="size" inherits="RaidLeadTinyPadButtonTemplate">
+					  <Anchors>
+						 <Anchor point="RIGHT" x="-50" y="0"/>
+					  </Anchors>
+					  <NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+						 <TexCoords left="0" right="0.125" top="0.75" bottom="0.875"/>
+					  </NormalTexture>
+					  <PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+						 <TexCoords left="0.125" right="0.25" top="0.75" bottom="0.875"/>
+					  </PushedTexture>
+				   </Button>
+					<Button parentKey="find" inherits="RaidLeadTinyPadButtonTemplate">
+						<Anchors>
+							<Anchor point="RIGHT" x="-71" y="0"/>
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".5" right=".625" top=".0" bottom=".125"/>
+						</NormalTexture>
+						<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".625" right=".75" top=".0" bottom=".125"/>
+						</PushedTexture>
+						<DisabledTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".875" right="1" top=".125" bottom=".25"/>
+						</DisabledTexture>
+					</Button>
+
+				</Frames>
+				<Scripts>
+					<OnMouseDown>
+						RaidLeadTinyPad:OnMouseDown()
+					</OnMouseDown>
+					<OnMouseUp>
+						RaidLeadTinyPad:OnMouseUp()
+					</OnMouseUp>
+				</Scripts>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self:RegisterEvent("PLAYER_LOGIN")
+			</OnLoad>
+			<OnEvent>
+				if self[event] then
+					self[event](self,...)
+				end
+			</OnEvent>
+			<OnMouseDown>
+				self:OnMouseDown()
+			</OnMouseDown>
+			<OnMouseUp>
+				self:OnMouseUp()
+			</OnMouseUp>
+			<OnSizeChanged>
+				RaidLeadTinyPadEditBox:SetWidth(w-50)
+			</OnSizeChanged>
+			<OnShow>
+				self:OnShow()
+			</OnShow>
+			<OnHide>
+				self:OnHide()
+			</OnHide>
+			<OnUpdate>
+				RaidLeadTinyPad.OnUpdate(self,elapsed)
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+
+	<Button name="RaidLeadTinyPadBookmarkTemplate" virtual="true">
+		<Size x="235" y="18"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="back" setAllPoints="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+					</Anchors>
+					<Color r=".25" g=".25" b=".25"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="name" inherits="GameFontHighlightLeft">
+					<Size x="132" y="20"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="0"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="mark" file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="2" y="0"/>
+					</Anchors>
+					<TexCoords left=".9" right=".975" top=".4" bottom=".475"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\Buttons\BlueGrad64" alpha=".25" alphaMode="ADD"/>
+		<PushedTexture file="Interface\Buttons\BlueGrad64" alpha=".25" alphaMode="ADD"/>
+		<Scripts>
+			<OnEnter>
+				RaidLeadTinyPad.ShowBookmarkTooltip(self)
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide()
+			</OnLeave>
+			<OnClick>
+				RaidLeadTinyPad.BookmarkOnClick(self)
+			</OnClick>
+		</Scripts>
+	</Button>
+
+	<Frame name="RaidLeadTinyPadBookmarks" parent="RaidLeadTinyPad" parentKey="bookmarks" inherits="BackdropTemplate" enableMouse="true" hidden="true">
+		<Size x="245" y="32"/>
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+		</KeyValues>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="RaidLeadTinyPad" x="5" y="0"/>
+		</Anchors>
+		<Frames>
+			<!-- search editBox mimic main area -->
+			<EditBox parentKey="prompt" autoFocus="true" hidden="true">
+				<Size x="106" y="20"/>
+				<Anchors>
+					<Anchor point="TOP" x="-11" y="-6"/>
+				</Anchors>
+				<FontString inherits="GameFontHighlight"/>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+							<Size x="12" y="29"/>
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT" x="2" y="-3"/>
+							</Anchors>
+							<TexCoords left="0" right="0.09375" top="0" bottom="1.0"/>
+						</Texture>
+						<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+							<Size x="12" y="29"/>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT" x="-2" y="-3"/>
+							</Anchors>
+							<TexCoords left="0.90625" right="1.0" top="0" bottom="1.0"/>
+						</Texture>
+						<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-FilterBorder">
+							<Size x="0" y="29"/>
+							<Anchors>
+								<Anchor point="LEFT" x="2" y="-3"/>
+								<Anchor point="RIGHT" x="-2" y="-3"/>
+							</Anchors>
+							<TexCoords left="0.09375" right="0.90625" top="0" bottom="1.0"/>
+						</Texture>
+						<FontString parentKey="label" inherits="GameFontHighlightSmall" text="Enter bookmark title">
+							<Anchors>
+								<Anchor point="CENTER" x="3" y="0"/>
+							</Anchors>
+							<Color r=".5" g=".5" b=".5"/>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Frames>
+					<Button parentKey="enter" inherits="RaidLeadTinyPadButtonTemplate">
+						<Anchors>
+							<Anchor point="TOPRIGHT" relativeTo="RaidLeadTinyPadBookmarks" x="-6" y="-6"/>
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".5" right=".625" top=".5" bottom=".625"/>
+						</NormalTexture>
+						<PushedTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".625" right=".75" top=".5" bottom=".625"/>
+						</PushedTexture>
+						<DisabledTexture file="Interface\AddOns\RaidLeadTinyPad\Buttons">
+							<TexCoords left=".75" right=".875" top=".5" bottom=".625"/>
+						</DisabledTexture>
+						<Scripts>
+							<OnClick>
+								RaidLeadTinyPad.BookmarkPromptOnEnter(self:GetParent())
+							</OnClick>
+						</Scripts>
+					</Button>
+				</Frames>
+				<Scripts>
+					<OnEscapePressed>
+						self:Hide()
+						self:GetParent().add:Show()
+					</OnEscapePressed>
+<!--					<OnTextChanged>
+ 				RaidLeadTinyPad.BookmarkPromptOnTextChanged(self)
+					</OnTextChanged>
+					<OnEnterPressed>
+						RaidLeadTinyPad.BookmarkPromptOnEnter(self)
+					</OnEnterPressed>
+-->
+				</Scripts>
+			</EditBox>
+
+		</Frames>
+		<Scripts>
+<!--			<OnShow>
+				RaidLeadTinyPad:UpdateESCable()
+			</OnShow>
+			<OnHide>
+				RaidLeadTinyPad:UpdateESCable()
+			</OnHide>
+-->
+		</Scripts>
+	</Frame>
+</Ui>
