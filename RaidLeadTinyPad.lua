@@ -98,7 +98,7 @@ function raidleadtinypad:PLAYER_LOGIN()
 	end
 
 
-	SendChatMessage("Testing RegisterEvents")
+	--SendChatMessage("Testing RegisterEvents")
 	RaidLeadTinyPad:RegisterEvent("PLAYER_LOGOUT")
 	--RaidLeadTinyPad:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	RaidLeadTinyPad:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -680,13 +680,13 @@ end
 -- RaidLeadTinyPad:Insert("body",<number>,"title") -- creates a new page bookmarked as "title" that contains "text" at page <number>
 function raidleadtinypad:OnUpdate(self, elapsed)
 	if InCombat == true then
-		if rltpForTesting == true then
-			SendChatMessage("Testing in combat")
-			rltpForTesting = false
-		else
-			SendChatMessage("Testing not in combat")
-			rltpForTesting = false
-		end
+--		if rltpForTesting == true then
+--			SendChatMessage("Testing in combat")
+--			rltpForTesting = false
+--		else
+--			SendChatMessage("Testing not in combat")
+--			rltpForTesting = false
+--		end
 
 		if RaidLeadTinyPad:IsVisible() then
 			raidleadtinypad:Toggle()			
